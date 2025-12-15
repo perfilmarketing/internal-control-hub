@@ -1,0 +1,84 @@
+@import url("https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Serif+Pro:wght@400;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@400;700&display=swap");
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    /* Dark theme by default for dashboard */
+    --background: 222 47% 6%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 47% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 47% 10%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 199 89% 48%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 267 75% 55%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 222 30% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 199 89% 48%;
+    --accent-foreground: 222 47% 6%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 222 30% 18%;
+    --input: 222 30% 18%;
+    --ring: 199 89% 48%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 222 47% 7%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 199 89% 48%;
+    --sidebar-primary-foreground: 222 47% 6%;
+    --sidebar-accent: 222 30% 12%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 222 30% 15%;
+    --sidebar-ring: 199 89% 48%;
+
+    --chart-1: 199 89% 48%;
+    --chart-2: 267 75% 55%;
+    --chart-3: 142 71% 45%;
+    --chart-4: 47 95% 53%;
+    --chart-5: 0 84% 60%;
+
+    --warning: 47 95% 53%;
+    --warning-foreground: 222 47% 6%;
+    --success: 142 71% 45%;
+    --success-foreground: 222 47% 6%;
+
+    --font-sans: 'Source Sans Pro', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Source Code Pro', ui-monospace, monospace;
+
+    --shadow-sm: 0 1px 2px 0 hsl(0 0% 0% / 0.3);
+    --shadow: 0 1px 3px 0 hsl(0 0% 0% / 0.4);
+    --shadow-md: 0 4px 6px -1px hsl(0 0% 0% / 0.4);
+    --shadow-lg: 0 10px 15px -3px hsl(0 0% 0% / 0.4);
+    --shadow-xl: 0 20px 25px -5px hsl(0 0% 0% / 0.4);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
