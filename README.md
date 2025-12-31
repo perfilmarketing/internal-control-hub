@@ -1,73 +1,174 @@
-# Welcome to your Lovable project
+# AutoControl - Dashboard de Gestão
 
-## Project info
+Sistema de gestão para controle de chips, contas OpenAI e relatórios de clientes.
 
-**URL**: https://lovable.dev/projects/92f739d4-e12a-4784-bd21-25702bdbc4a7
+## 🚀 Tecnologias
 
-## How can I edit this code?
+- **React 18** + **TypeScript**
+- **Vite** - Build tool
+- **Tailwind CSS** - Estilização
+- **shadcn/ui** - Componentes UI
+- **Supabase** - Backend (Database, Auth, Edge Functions)
+- **TanStack Query** - Gerenciamento de estado do servidor
 
-There are several ways of editing your application.
+## 📋 Pré-requisitos
 
-**Use Lovable**
+- Node.js 18+ 
+- npm ou bun
+- Conta no [Supabase](https://supabase.com)
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/92f739d4-e12a-4784-bd21-25702bdbc4a7) and start prompting.
+## 🔧 Configuração do Supabase
 
-Changes made via Lovable will be committed automatically to this repo.
+### 1. Criar projeto no Supabase
 
-**Use your preferred IDE**
+1. Acesse [supabase.com](https://supabase.com) e crie uma conta
+2. Crie um novo projeto
+3. Anote a **Project URL** e a **anon key** (em Settings > API)
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### 2. Criar as tabelas no banco de dados
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+Execute o seguinte SQL no SQL Editor do Supabase:
 
-Follow these steps:
+```sql
+-- Tabela de clientes
+CREATE TABLE public.clients (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome TEXT NOT NULL,
+  chips UUID[] DEFAULT '{}'::uuid[],
+  apis UUID[] DEFAULT '{}'::uuid[],
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+-- Tabela de chips
+CREATE TABLE public.chips (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  numero TEXT NOT NULL,
+  api_usada TEXT NOT NULL,
+  ultima_recarga DATE NOT NULL,
+  data_limite DATE,
+  url TEXT,
+  token TEXT,
+  client_id UUID REFERENCES public.clients(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+-- Tabela de contas OpenAI
+CREATE TABLE public.openai_accounts (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  nome TEXT NOT NULL,
+  api_key TEXT NOT NULL,
+  tipo TEXT NOT NULL DEFAULT 'individual',
+  endpoint TEXT DEFAULT 'https://api.openai.com/v1',
+  gasto_atual NUMERIC DEFAULT 0,
+  client_id UUID REFERENCES public.clients(id),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
+  atualizado_em TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
 
-# Step 3: Install the necessary dependencies.
-npm i
+-- Tabela de relatórios
+CREATE TABLE public.client_reports (
+  id UUID NOT NULL DEFAULT gen_random_uuid() PRIMARY KEY,
+  client_id UUID NOT NULL REFERENCES public.clients(id),
+  mes INTEGER NOT NULL,
+  ano INTEGER NOT NULL,
+  total_chips NUMERIC DEFAULT 0,
+  total_api NUMERIC DEFAULT 0,
+  total_geral NUMERIC DEFAULT 0,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+);
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+-- Função para atualizar updated_at
+CREATE OR REPLACE FUNCTION public.update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+-- Triggers para updated_at
+CREATE TRIGGER update_clients_updated_at
+  BEFORE UPDATE ON public.clients
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+CREATE TRIGGER update_chips_updated_at
+  BEFORE UPDATE ON public.chips
+  FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
+
+-- Habilitar RLS (Row Level Security)
+ALTER TABLE public.clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.chips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.openai_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.client_reports ENABLE ROW LEVEL SECURITY;
+
+-- Políticas de acesso (ajuste conforme necessidade)
+CREATE POLICY "Allow all for clients" ON public.clients FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for chips" ON public.chips FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for openai_accounts" ON public.openai_accounts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow all for client_reports" ON public.client_reports FOR ALL USING (true) WITH CHECK (true);
 ```
 
-**Edit a file directly in GitHub**
+### 3. Configurar variáveis de ambiente
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Copie o arquivo `.env.example` para `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-**Use GitHub Codespaces**
+2. Preencha as variáveis com suas credenciais do Supabase:
+   ```env
+   VITE_SUPABASE_URL=https://seu-projeto.supabase.co
+   VITE_SUPABASE_PUBLISHABLE_KEY=sua-anon-key
+   VITE_SUPABASE_PROJECT_ID=seu-project-id
+   ```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🏃 Executando o projeto
 
-## What technologies are used for this project?
+```bash
+# Instalar dependências
+npm install
 
-This project is built with:
+# Iniciar servidor de desenvolvimento
+npm run dev
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Build para produção
+npm run build
+```
 
-## How can I deploy this project?
+## 📁 Estrutura do Projeto
 
-Simply open [Lovable](https://lovable.dev/projects/92f739d4-e12a-4784-bd21-25702bdbc4a7) and click on Share -> Publish.
+```
+src/
+├── components/
+│   ├── layout/          # Componentes de layout (Sidebar, DashboardLayout)
+│   └── ui/              # Componentes UI (shadcn/ui)
+├── hooks/               # Custom hooks (useChips, useClients, etc.)
+├── integrations/
+│   └── supabase/        # Cliente e tipos do Supabase
+├── lib/                 # Utilitários
+└── pages/               # Páginas da aplicação
+```
 
-## Can I connect a custom domain to my Lovable project?
+## 📊 Funcionalidades
 
-Yes, you can!
+- **Dashboard** - Visão geral com métricas
+- **Chips** - Gerenciamento de chips/números
+- **OpenAI** - Controle de contas e gastos com APIs
+- **Clientes** - Cadastro e gestão de clientes
+- **Relatórios** - Relatórios mensais por cliente
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## 🔐 Segurança
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+As políticas RLS atuais permitem acesso total. Para produção, configure políticas mais restritivas baseadas em autenticação:
+
+```sql
+-- Exemplo: apenas usuários autenticados
+CREATE POLICY "Authenticated users only" ON public.clients
+  FOR ALL USING (auth.uid() IS NOT NULL);
+```
+
+## 📝 Licença
+
+MIT
